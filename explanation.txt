@@ -1,0 +1,31 @@
+p(class|word)	= p(word|class) * p(class) / p(word)
+				= p(word|class) * p(class) # we take out the denom bc since we're comparing 2 p(class|word)s, the denoms cancel out
+
+p(word|class)	= [# of times when a word exists in a spam email] / [# of spam emails]
+				= [[# of times when a word exists in a spam email] + 1] / [# of spam emails] # Laplace smoothing
+
+p(class)		= [# of spam emails] / [# of all emails]
+
+p(class|email)	= p(class|word1, word2, ..., wordn)
+				= p(class|word1) * p(class|word2) * ... * p(class|wordn) ## i can't do this; only if e;ements in A are unioned
+				= p(word1|class) * p(class) * p(word2|class) * p(class) * ... * p(wordn|class) * p(class) ## left off denom p(word) here
+				= n * p(class) * p(word1|class) * p(word2|class) * ... * p(wordn|class) # n is the number of words in the email
+				
+				= n * p(class) * [[word1count + 1] / n2] * [[word2count + 1] / n2] * ... * [[wordncount + 1] / n2] # n2 is the number of spam emails
+				= n * p(class) * [word1count + 1] * [word2count + 1] * ... * [wordncount + 1] / [n2^n]
+				= n * n2 * [word1count + 1] * [word2count + 1] * ... * [wordncount + 1] / [N * n2^n]
+				= n * n2^(1-n) * [word1count + 1] * [word2count + 1] * ... * [wordncount + 1] / N
+
+p(class|email)	= p(class) * p(email|class) / p(email)
+				= p(class) * p(email|class) # we take out the denom bc since we're comparing 2 p(class|word)s, the denoms cancel out
+				= p(class) * p(word1, word2, ..., wordn|class) # n is number of words in the email
+				= p(class) * p(word1|class) * p(word2|class) * ... * p(wordn|class)
+
+				= p(class) * [word1count / n2] * [word2count / n2] * ... * [wordncount / n2] # wordicount = [# of spam emails where wordi appears]; n2 is number of spam emails
+
+				= [n2 / N] * [word1count / n2] * [word2count / n2] * ... * [wordncount / n2] # N is the number of all emails
+				= [n2 / N] * [(word1count + 1) / (n2 + 1)] * [(word2count + 1) / (n2 + 1)] * ... * [(wordncount + 1) / (n2 + 1)] # Laplace smoothing
+
+				= n2 * [word1count + 1] * [word2count + 1] * ... * [wordncount + 1] / [N * (n2 + 1)^n]
+				= log(n2) + log(word1count + 1) + log(word2count + 1) + ... + log(wordncount + 1) - log(N) - n * log(n2 + 1)
+

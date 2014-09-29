@@ -1,13 +1,14 @@
-# 12:59am - success!!=
+# 12:59am - success!!
+# make or import precision + recall. think about the metrics.
+# this does better than GaussianNB() from sklearn :)
+# maybe it's bc i didn't use a more specific NB alg w scikit-learn
 
 from scipy.io import loadmat
 import numpy as np
 
-mat = loadmat('spamTest.mat')
-X = mat['Xtest']
-y = mat['ytest']
-# X = mat['X']
-# y = mat['y']
+mat = loadmat('spamTrain.mat')
+X = mat['X']
+y = mat['y']
 
 ix = np.in1d(y.ravel(), 1).reshape(y.shape)
 indices_spam = np.where(ix)[0]
@@ -17,63 +18,94 @@ ix = np.in1d(y.ravel(), 0).reshape(y.shape)
 indices_ham = np.where(ix)[0]
 X_ham = X[indices_ham]
 
-N = X.shape[0]
-
 # in X, each row is an email
 # each column states whether a word exists in that email
- 
-# (1 - n) log(n) + log(#word1 + 1) + ... + log(#wordn + 1) - log(N)
-# n is # of spam emails; N is total # of emails
 
-spam_trainers = np.log((X_spam.sum(axis = 0) + 1) / float(X_spam.shape[0]))
-ham_trainers = np.log((X_ham.sum(axis = 0) + 1) / float(X_ham.shape[0]))
+class Old(object):
+	def __init__(self):
+		self.spam_trainers = np.log((X_spam.sum(axis = 0) + 1) / float(X_spam.shape[0])) # how to put this below and make it work? do it!
+		self.ham_trainers = np.log((X_ham.sum(axis = 0) + 1) / float(X_ham.shape[0]))
 
-# maybe the n in the trainers and the n during calculation are different?
+	def calc(self, row, spam=True):
+		new_email = X[row]
+		n = np.where(new_email == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
+		
+		if spam:
+			n2 = X_spam.shape[0] # number of spam emails in set
+			trainer = self.spam_trainers
+		else:
+			n2 = X_ham.shape[0] # number of spam emails in set
+			trainer = self.ham_trainers
 
-def spam(row):
-	# another big change here is assuming that when i'm calc'g a new email,
-	# i only care about the words that exist in the email. only those words
-	# count towards n. all the words in the vocab don't count towards n.
-	new_email = X[row]
-	n = np.where(new_email == 1)[0].shape[0]
+		result = np.log(n2 / float(X.shape[0])) + (new_email * trainer).sum() # I sum bc I'm adding logs instead of multiplying
+		return result
 
-	result = np.log(X_spam.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() # I sum bc I'm adding logs instead of multiplying
-	# b4, i had n*log(n). but the 1st n refers to the # of words, which is local
-	# the 2nd n refers to how likely a word appears in an email out of ALL SPAM EMAILS, so it's not local
+class New(object):
+	def __init__(self):
+		self.spam_trainers = np.log((X_spam.sum(axis = 0) + 1))
+		self.ham_trainers = np.log((X_ham.sum(axis = 0) + 1))
 
-	# i only care about the words that exist in the new email, and by * 1, i get only those
-	# the / n refers to the P that a word appears given that an email is spam, so we care
-	# about all the spam emails, not specific to this email
+	def calc(self, row, spam=True):
+		new_email = X[row]
+		n = np.where(new_email == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
+		
+		if spam:
+			n2 = X_spam.shape[0] # number of spam emails in set
+			trainer = self.spam_trainers
+		else:
+			n2 = X_spam.shape[0] # number of spam emails in set
+			trainer = self.ham_trainers
 
-	return result
+		result = np.log(n2) + (new_email * trainer).sum() - np.log(X.shape[0]) - n * np.log(n2 + 1)
+		return result
 
-def ham(row):
-	# before i made the 0s in new_email 1s, to count the hams
-	# but now i think, does email contain certain words? then, 
-	# how likely do hams contain these words?
-	# if i changed 1 to 0, that wld be, how likely do hams contain words that
-	# don't exist in this email
-	new_email = X[row]
-	n = np.where(new_email == 1)[0].shape[0]
+mat = loadmat('spamTest.mat')
+X = mat['Xtest']
+y = mat['ytest']
 
-	result = np.log(X_ham.shape[0] / float(X.shape[0])) + (new_email * ham_trainers).sum()
-	return result
+ix = np.in1d(y.ravel(), 1).reshape(y.shape)
+indices_spam = np.where(ix)[0]
+X_spam = X[indices_spam]
 
-def calc(row):
-	print 'P that this new email is spam is {}; ham is {}'.format(spam(row), ham(row))
-# overfitted
+ix = np.in1d(y.ravel(), 0).reshape(y.shape)
+indices_ham = np.where(ix)[0]
+X_ham = X[indices_ham]
 
-spams = []
-hams = []
-
-for i in range(N):
-	spam_result = spam(i)
-	ham_result = ham(i)
-
-	if spam_result > ham_result:
-		spams.append(i)
+def test(old=True):
+	if old:
+		calc = Old().calc
 	else:
-		hams.append(i)
+		calc = New().calc
 
-print len(spams), len(indices_spam)
-print len(hams), len(indices_ham)
+	y_pred = []
+
+	for i in range(X.shape[0]): # all the emails, spam and ham
+		spam_result = calc(i, spam=True)
+		ham_result = calc(i, spam=False)
+
+		if spam_result > ham_result:
+			y_pred.append(1)
+		else:
+			y_pred.append(0)
+
+	y_pred = np.array(y_pred)
+
+	print len(np.where(y_pred==1)[0]), len(np.where(y==1)[0])
+	print len(np.where(y_pred==0)[0]), len(np.where(y==0)[0])
+
+	count = 0
+	for each in np.where(y_pred==1)[0]:
+		if each not in np.where(y==1)[0]:
+			count += 1
+
+	print count, 'was in y_pred, not in y'
+
+	count = 0
+
+	for each in np.where(y==1)[0]:
+		if each not in np.where(y_pred==1)[0]:
+			count += 1
+			
+	print count, 'was in y, not in y_pred'
+
+test(old=False)
