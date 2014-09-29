@@ -23,40 +23,39 @@ N = X.shape[0]
 # (1 - n) log(n) + log(#word1 + 1) + ... + log(#wordn + 1) - log(N)
 # n is # of spam emails; N is total # of emails
 
-spam_trainers = X_spam.sum(axis = 0) + 1
-ham_trainers = X_ham.sum(axis = 0) + 1
+spam_trainers = np.log((X_spam.sum(axis = 0) + 1))
+ham_trainers = np.log((X_ham.sum(axis = 0) + 1))
+
+# maybe the n in the trainers and the n during calculation are different?
 
 def spam(row):
-	n = X_spam.shape[0]
-
+	# another big change here is assuming that when i'm calc'g a new email,
+	# i only care about the words that exist in the email. only those words
+	# count towards n. all the words in the vocab don't count towards n.
 	new_email = X[row]
-	result = (1 - n) * np.log(n) + (new_email * spam_trainers).sum() - np.log(N)
+	n = np.where(new_email == 1)[0].shape[0]
+
+	result = np.log(X_spam.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() - n * np.log(X_spam.shape[0]) # I sum bc I'm adding logs instead of multiplying
+	# b4, i had n*log(n). but the 1st n refers to the # of words, which is local
+	# the 2nd n refers to how likely a word appears in an email out of ALL SPAM EMAILS, so it's not local
+
+	# i only care about the words that exist in the new email, and by * 1, i get only those
+	# the / n refers to the P that a word appears given that an email is spam, so we care
+	# about all the spam emails, not specific to this email
+
 	return result
 
 def ham(row):
-	n = X_ham.shape[0]
-
+	# before i made the 0s in new_email 1s, to count the hams
+	# but now i think, does email contain certain words? then, 
+	# how likely do hams contain these words?
+	# if i changed 1 to 0, that wld be, how likely do hams contain words that
+	# don't exist in this email
 	new_email = X[row]
-	result = (1 - n) * np.log(n) + (new_email * ham_trainers).sum() - np.log(N)
+	n = np.where(new_email == 1)[0].shape[0]
+
+	result = np.log(X_ham.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() - n * np.log(X_ham.shape[0])
 	return result
-
-tot_words = np.where(X_spam.sum(axis=0)==1) + np.where(X_ham.sum(axis=0)==1)
-
-def spam(row):
-	n = X_spam.shape[0]
-	denom = X_spam.sum(axis = 0)
-	# word_count_of_spam = np.where(X_spam.sum(axis=0)==1)
-	word_count_of_spam = np.log(X_spam.sum(axis = 0) + 1)
-
-	return word_count_of_spam - np.log(tot_words + X.shape[1])
-
-	# return ((((X_spam.sum(axis=0) + 1) * X[row])/float(n)).sum()) * n / float(N)
-	return (np.log(X_spam.sum(axis=0)+1)*X[row]).sum()+np.log(n)-n*np.log(n)-np.log(N)
-
-def ham(row):
-	n = X_ham.shape[0]
-	# return ((((X_ham.sum(axis=0) + 1) * X[row])/float(n)).sum()) * n / float(N)
-	return (np.log(X_ham.sum(axis=0)+1)*X[row]).sum()+np.log(n)-n*np.log(n)-np.log(N)
 
 def calc(row):
 	print 'P that this new email is spam is {}; ham is {}'.format(spam(row), ham(row))
