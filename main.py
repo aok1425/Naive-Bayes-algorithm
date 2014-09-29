@@ -53,7 +53,7 @@ class New(object):
 			n2 = X_spam.shape[0] # number of spam emails in set
 			trainer = self.spam_trainers
 		else:
-			n2 = X_spam.shape[0] # number of spam emails in set
+			n2 = X_ham.shape[0] # number of spam emails in set
 			trainer = self.ham_trainers
 
 		result = np.log(n2) + (new_email * trainer).sum() - np.log(X.shape[0]) - n * np.log(n2 + 1)
@@ -108,4 +108,4 @@ def test(old=True):
 			
 	print count, 'was in y, not in y_pred'
 
-test(old=False)
+test(old=True)
