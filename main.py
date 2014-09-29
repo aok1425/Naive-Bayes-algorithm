@@ -1,3 +1,5 @@
+# 12:59am - success!!=
+
 from scipy.io import loadmat
 import numpy as np
 
@@ -23,8 +25,8 @@ N = X.shape[0]
 # (1 - n) log(n) + log(#word1 + 1) + ... + log(#wordn + 1) - log(N)
 # n is # of spam emails; N is total # of emails
 
-spam_trainers = np.log((X_spam.sum(axis = 0) + 1))
-ham_trainers = np.log((X_ham.sum(axis = 0) + 1))
+spam_trainers = np.log((X_spam.sum(axis = 0) + 1) / float(X_spam.shape[0]))
+ham_trainers = np.log((X_ham.sum(axis = 0) + 1) / float(X_ham.shape[0]))
 
 # maybe the n in the trainers and the n during calculation are different?
 
@@ -35,7 +37,7 @@ def spam(row):
 	new_email = X[row]
 	n = np.where(new_email == 1)[0].shape[0]
 
-	result = np.log(X_spam.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() - n * np.log(X_spam.shape[0]) # I sum bc I'm adding logs instead of multiplying
+	result = np.log(X_spam.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() # I sum bc I'm adding logs instead of multiplying
 	# b4, i had n*log(n). but the 1st n refers to the # of words, which is local
 	# the 2nd n refers to how likely a word appears in an email out of ALL SPAM EMAILS, so it's not local
 
@@ -54,7 +56,7 @@ def ham(row):
 	new_email = X[row]
 	n = np.where(new_email == 1)[0].shape[0]
 
-	result = np.log(X_ham.shape[0] / float(X.shape[0])) + (new_email * spam_trainers).sum() - n * np.log(X_ham.shape[0])
+	result = np.log(X_ham.shape[0] / float(X.shape[0])) + (new_email * ham_trainers).sum()
 	return result
 
 def calc(row):
