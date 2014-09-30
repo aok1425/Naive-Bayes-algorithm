@@ -4,89 +4,106 @@
 from scipy.io import loadmat
 import numpy as np
 
-mat = loadmat('spamTrain.mat')
-X = mat['X']
-y = mat['y']
-
-ix = np.in1d(y.ravel(), 1).reshape(y.shape)
-indices_spam = np.where(ix)[0]
-X_spam = X[indices_spam]
-
-ix = np.in1d(y.ravel(), 0).reshape(y.shape)
-indices_ham = np.where(ix)[0]
-X_ham = X[indices_ham]
-
 # in X, each row is an email
 # each column states whether a word exists in that email
 
 class Old(object):
-	def __init__(self):
-		self.spam_trainers = np.log((X_spam.sum(axis = 0) + 1) / float(X_spam.shape[0])) # how to put this below and make it work? do it!
-		self.ham_trainers = np.log((X_ham.sum(axis = 0) + 1) / float(X_ham.shape[0]))
+	def fit(self, X, y):
+		ix = np.in1d(y.ravel(), 1).reshape(y.shape)
+		indices_spam = np.where(ix)[0]
+		self.X_spam = X[indices_spam]
+
+		ix = np.in1d(y.ravel(), 0).reshape(y.shape)
+		indices_ham = np.where(ix)[0]
+		self.X_ham = X[indices_ham]
+
+		self.X = X
+
+		self.spam_trainers = np.log((self.X_spam.sum(axis = 0) + 1) / float(self.X_spam.shape[0])) # how to put this below and make it work? do it!
+		self.ham_trainers = np.log((self.X_ham.sum(axis = 0) + 1) / float(self.X_ham.shape[0]))
+
+	def predict(self, X):
+		y_pred = []
+
+		for row in X:
+			if self.calc(row, spam=True) > self.calc(row, spam=False):
+				y_pred.append(1)
+			else:
+				y_pred.append(0)
+
+		return np.array(y_pred)
 
 	def calc(self, row, spam=True):
-		new_email = X[row]
-		n = np.where(new_email == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
+		n = np.where(row == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
 		
 		if spam:
-			n2 = X_spam.shape[0] # number of spam emails in set
+			n2 = self.X_spam.shape[0] # number of spam emails in set
 			trainer = self.spam_trainers
 		else:
-			n2 = X_ham.shape[0] # number of spam emails in set
+			n2 = self.X_ham.shape[0] # number of spam emails in set
 			trainer = self.ham_trainers
 
-		result = np.log(n2 / float(X.shape[0])) + (new_email * trainer).sum() # I sum bc I'm adding logs instead of multiplying
+		result = np.log(n2 / float(self.X.shape[0])) + (row * trainer).sum() # I sum bc I'm adding logs instead of multiplying
 		return result
 
 class New(object):
-	def __init__(self):
-		self.spam_trainers = np.log((X_spam.sum(axis = 0) + 1))
-		self.ham_trainers = np.log((X_ham.sum(axis = 0) + 1))
+	def fit(self, X, y):
+		ix = np.in1d(y.ravel(), 1).reshape(y.shape)
+		indices_spam = np.where(ix)[0]
+		self.X_spam = X[indices_spam]
+
+		ix = np.in1d(y.ravel(), 0).reshape(y.shape)
+		indices_ham = np.where(ix)[0]
+		self.X_ham = X[indices_ham]
+
+		self.X = X
+
+		self.spam_trainers = np.log((self.X_spam.sum(axis = 0) + 1))
+		self.ham_trainers = np.log((self.X_ham.sum(axis = 0) + 1))
+
+	def predict(self, X):
+		y_pred = []
+
+		for row in X:
+			if self.calc(row, spam=True) > self.calc(row, spam=False):
+				y_pred.append(1)
+			else:
+				y_pred.append(0)
+
+		return np.array(y_pred)
 
 	def calc(self, row, spam=True):
-		new_email = X[row]
-		n = np.where(new_email == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
+		n = np.where(row == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
 		
 		if spam:
-			n2 = X_spam.shape[0] # number of spam emails in set
+			n2 = self.X_spam.shape[0] # number of spam emails in set
 			trainer = self.spam_trainers
 		else:
-			n2 = X_ham.shape[0] # number of spam emails in set
+			n2 = self.X_ham.shape[0] # number of spam emails in set
 			trainer = self.ham_trainers
 
-		result = np.log(n2) + (new_email * trainer).sum() - np.log(X.shape[0]) - n * np.log(n2 + 1)
+		result = np.log(n2) + (row * trainer).sum() - np.log(self.X.shape[0]) - n * np.log(n2 + 1)
 		return result
-
-mat = loadmat('spamTest.mat')
-X = mat['Xtest']
-y = mat['ytest']
-
-ix = np.in1d(y.ravel(), 1).reshape(y.shape)
-indices_spam = np.where(ix)[0]
-X_spam = X[indices_spam]
-
-ix = np.in1d(y.ravel(), 0).reshape(y.shape)
-indices_ham = np.where(ix)[0]
-X_ham = X[indices_ham]
 
 def test(old=True):
 	if old:
 		calc = Old().calc
+		alg = Old()
 	else:
 		calc = New().calc
+		alg = New()
 
-	y_pred = []
+	mat = loadmat('spamTrain.mat')
+	X = mat['X']
+	y = mat['y']
 
-	for i in range(X.shape[0]): # all the emails, spam and ham
-		spam_result = calc(i, spam=True)
-		ham_result = calc(i, spam=False)
+	alg.fit(X, y.ravel()) # like scikit-learn, I should only accept y in ravel() form
 
-		if spam_result > ham_result:
-			y_pred.append(1)
-		else:
-			y_pred.append(0)
+	mat = loadmat('spamTest.mat')
+	X = mat['Xtest']
+	y = mat['ytest']
 
-	y_pred = np.array(y_pred)
+	y_pred = alg.predict(X)
 
 	true_pos = 0
 	false_pos = 0
@@ -117,4 +134,6 @@ def test(old=True):
 	f1_score = 2 * precision * recall / (precision + recall)
 	print 'f1 score is {}'.format(f1_score)
 
+test(old=True)
+print ''
 test(old=False)
