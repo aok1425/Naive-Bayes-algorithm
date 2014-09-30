@@ -1,7 +1,5 @@
 # 12:59am - success!!
-# make or import precision + recall. think about the metrics.
-# this does better than GaussianNB() from sklearn :)
-# maybe it's bc i didn't use a more specific NB alg w scikit-learn
+# new gets 92% f1 score; MultinomialNB() gets 96% :(
 
 from scipy.io import loadmat
 import numpy as np
@@ -90,22 +88,33 @@ def test(old=True):
 
 	y_pred = np.array(y_pred)
 
-	print len(np.where(y_pred==1)[0]), len(np.where(y==1)[0])
-	print len(np.where(y_pred==0)[0]), len(np.where(y==0)[0])
+	true_pos = 0
+	false_pos = 0
+	true_neg = 0
+	false_neg = 0
 
-	count = 0
 	for each in np.where(y_pred==1)[0]:
-		if each not in np.where(y==1)[0]:
-			count += 1
+		if each in np.where(y==1)[0]:
+			true_pos += 1
+		else:
+			false_pos += 1
 
-	print count, 'was in y_pred, not in y'
-
-	count = 0
-
-	for each in np.where(y==1)[0]:
-		if each not in np.where(y_pred==1)[0]:
-			count += 1
+	for each in np.where(y_pred==0)[0]:
+		if each in np.where(y==0)[0]:
+			true_neg += 1
+		else:
+			false_neg += 1
 			
-	print count, 'was in y, not in y_pred'
+	print true_pos, false_pos
+	print false_neg, true_neg
 
-test(old=True)
+	precision = true_pos / float(true_pos + false_pos)
+	recall = true_pos / float(true_pos + false_neg)
+
+	print 'out of all predicted spam emails, {:.0%} were actually spam (precision)'.format(precision)
+	print 'out of all the actual spam emails, {:.0%} we predicted as being spam (recall)'.format(recall)
+
+	f1_score = 2 * precision * recall / (precision + recall)
+	print 'f1 score is {}'.format(f1_score)
+
+test(old=False)
