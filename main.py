@@ -1,5 +1,5 @@
 # 12:59am - success!!
-# new gets 92% f1 score; MultinomialNB() gets 96% :(
+# new gets 93% f1 score; MultinomialNB() gets 96% :(
 
 from scipy.io import loadmat
 import numpy as np
