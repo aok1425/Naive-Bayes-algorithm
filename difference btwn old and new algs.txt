@@ -1,0 +1,17 @@
+n = np.where(row == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
+n2 = X_ham.shape[0] # number of spam emails in set
+trainer1 = np.log((X_ham.sum(axis = 0) + 1)) - np.log(n2 + 1))
+trainer2 = np.log((X_ham.sum(axis = 0) + 1))
+
+(row * trainer1).sum() =? (row * trainer2).sum() - n * np.log(n2 + 1)
+
+First, I had forgotten the +1 for np.log(n2 + 1) for trainer1
+The difference is that in Left np.log(n2 + 1) is multiplied by every *word in the email in question*,
+whereas in Right, it's multiplied by ... also every word in the email in question, n.
+
+Maybe the difference is just the +1 for trainer1? Let's see...
+
+
+YES! that's it!!!
+
+deleting old one...

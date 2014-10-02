@@ -9,18 +9,18 @@ import numpy as np
 
 class Old(object):
 	def fit(self, X, y):
-		ix = np.in1d(y.ravel(), 1).reshape(y.shape)
+		ix = np.in1d(y, 1).reshape(y.shape)
 		indices_spam = np.where(ix)[0]
 		self.X_spam = X[indices_spam]
 
-		ix = np.in1d(y.ravel(), 0).reshape(y.shape)
+		ix = np.in1d(y, 0).reshape(y.shape)
 		indices_ham = np.where(ix)[0]
 		self.X_ham = X[indices_ham]
 
 		self.X = X
 
-		self.spam_trainers = np.log((self.X_spam.sum(axis = 0) + 1) / float(self.X_spam.shape[0])) # how to put this below and make it work? do it!
-		self.ham_trainers = np.log((self.X_ham.sum(axis = 0) + 1) / float(self.X_ham.shape[0]))
+		self.spam_trainers = np.log((self.X_spam.sum(axis = 0) + 1) / float(self.X_spam.shape[0] + 1)) # how to put this below and make it work? do it!
+		self.ham_trainers = np.log((self.X_ham.sum(axis = 0) + 1) / float(self.X_ham.shape[0] + 1))
 
 	def predict(self, X):
 		y_pred = []
@@ -48,11 +48,11 @@ class Old(object):
 
 class New(object):
 	def fit(self, X, y):
-		ix = np.in1d(y.ravel(), 1).reshape(y.shape)
+		ix = np.in1d(y, 1).reshape(y.shape)
 		indices_spam = np.where(ix)[0]
 		self.X_spam = X[indices_spam]
 
-		ix = np.in1d(y.ravel(), 0).reshape(y.shape)
+		ix = np.in1d(y, 0).reshape(y.shape)
 		indices_ham = np.where(ix)[0]
 		self.X_ham = X[indices_ham]
 
@@ -85,26 +85,7 @@ class New(object):
 		result = np.log(n2) + (row * trainer).sum() - np.log(self.X.shape[0]) - n * np.log(n2 + 1)
 		return result
 
-def test(old=True):
-	if old:
-		calc = Old().calc
-		alg = Old()
-	else:
-		calc = New().calc
-		alg = New()
-
-	mat = loadmat('spamTrain.mat')
-	X = mat['X']
-	y = mat['y']
-
-	alg.fit(X, y.ravel()) # like scikit-learn, I should only accept y in ravel() form
-
-	mat = loadmat('spamTest.mat')
-	X = mat['Xtest']
-	y = mat['ytest']
-
-	y_pred = alg.predict(X)
-
+def score(y, y_pred):
 	true_pos = 0
 	false_pos = 0
 	true_neg = 0
@@ -133,7 +114,3 @@ def test(old=True):
 
 	f1_score = 2 * precision * recall / (precision + recall)
 	print 'f1 score is {}'.format(f1_score)
-
-test(old=True)
-print ''
-test(old=False)

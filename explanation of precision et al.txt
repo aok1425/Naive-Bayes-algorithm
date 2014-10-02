@@ -1,0 +1,51 @@
+when we want high precision and recall, we look at F1 score
+when we want high recall/sensitivity, and low false-positive rate, we look at area under ROC curve
+
+btwn the domains of medical tests and spam, do we want the same thing? or f1 for spam and ROC for medical? both can be used for both.
+
+the F1 is a good heuristic measure of classifier quality, as it at least incorporates our operational choice of score threshold into the quality assessment. The ROC curve is useful tool designing a classifier from a scoring function (though we prefer the “double hump graph”), but once you have chosen a threshold the performance of the other classifiers (induced by choosing different thresholds) are irrelevant to assessing the performance of the classifier you have settled on.
+# http://www.win-vector.com/blog/2013/01/more-on-rocauc/
+
+what does high false pos rate mean for medical tests?
+you have to get a biopsy when you don't actually have cancer
+you get on HIV meds when you don't really have HIV
+
+what does a high false pos rate mean for spam?
+an email is labeled as spam that is not really spam
+there's a really important email that doesn't get to you bc it was marked as spam
+
+precision	= out of all the ones we predicted to be right, how many are right?
+			= true pos / [true pos + false pos]
+			= positive predictive value
+			= out of all the emails the alg said were spam, how many were spam?
+			= out of all the cases where the test said pt was + for HIV, how many of those were actual HIV cases?
+
+sensitivity	= out of all the ones that were right, how many did we predict to be right?
+			= true pos / [true pos + false neg]
+			= recall
+			= out of all the emails that were spam, how many did the alg predict to be spam?
+			= out of all the actual + HIV cases, how many did we the test state were positive?
+
+specificity	= out of all the ones that were wrong, how many did we predict to be wrong?
+			= true neg / [true neg + false pos]
+
+1 - specificity	= out of all the ones that were wrong, how many did we predict to be right?
+				= false pos / [true neg + false pos]	
+				= false-positive rate		
+
+true pos; false pos
+false neg; true neg
+
+X axis: actual pos, actual neg
+y axis: predicted pos, predicted neg
+
+positive predictive value 	= out of all the ones we predicted to be right, how many were right?
+							= true pos / [true pos + false pos]
+
+
+A + B + C + D 	= 1
+
+D / [B + D] ?= 1 - B / [B + D]
+
+D 	= B + D - B
+	= D
