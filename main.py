@@ -1,5 +1,6 @@
 # 12:59am - success!!
 # new gets 93% f1 score; MultinomialNB() gets 96% :(
+# why?
 
 from scipy.io import loadmat
 import numpy as np
@@ -7,46 +8,7 @@ import numpy as np
 # in X, each row is an email
 # each column states whether a word exists in that email
 
-class Old(object):
-	def fit(self, X, y):
-		ix = np.in1d(y, 1).reshape(y.shape)
-		indices_spam = np.where(ix)[0]
-		self.X_spam = X[indices_spam]
-
-		ix = np.in1d(y, 0).reshape(y.shape)
-		indices_ham = np.where(ix)[0]
-		self.X_ham = X[indices_ham]
-
-		self.X = X
-
-		self.spam_trainers = np.log((self.X_spam.sum(axis = 0) + 1) / float(self.X_spam.shape[0] + 1)) # how to put this below and make it work? do it!
-		self.ham_trainers = np.log((self.X_ham.sum(axis = 0) + 1) / float(self.X_ham.shape[0] + 1))
-
-	def predict(self, X):
-		y_pred = []
-
-		for row in X:
-			if self.calc(row, spam=True) > self.calc(row, spam=False):
-				y_pred.append(1)
-			else:
-				y_pred.append(0)
-
-		return np.array(y_pred)
-
-	def calc(self, row, spam=True):
-		n = np.where(row == 1)[0].shape[0] # X[row].sum() works too bc of 1 or 0; number words in both email and vocab list
-		
-		if spam:
-			n2 = self.X_spam.shape[0] # number of spam emails in set
-			trainer = self.spam_trainers
-		else:
-			n2 = self.X_ham.shape[0] # number of spam emails in set
-			trainer = self.ham_trainers
-
-		result = np.log(n2 / float(self.X.shape[0])) + (row * trainer).sum() # I sum bc I'm adding logs instead of multiplying
-		return result
-
-class New(object):
+class MyNaiveBayes(object):
 	def fit(self, X, y):
 		ix = np.in1d(y, 1).reshape(y.shape)
 		indices_spam = np.where(ix)[0]
