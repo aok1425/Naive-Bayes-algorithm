@@ -1,4 +1,4 @@
-	# 12:59am - success!!
+# 12:59am - success!!
 # new gets 93% f1 score; MultinomialNB() gets 96% :(
 # why?
 
@@ -14,7 +14,7 @@ class MyNaiveBayes(object):
 		self.categs = max(y) + 1 # num of rows
 		emails = X.shape[1] # num of columns
 		self.trainers = np.zeros(self.categs * emails).reshape(self.categs, emails)
-		self.n2 = {}
+		self.n2 = {} # num of emails of that categ amongst the training set; num of spam emails
 
 		for i in range(self.categs): # cycling through the # of categs, like spam/ham
 			ix = np.in1d(y, i).reshape(y.shape)
