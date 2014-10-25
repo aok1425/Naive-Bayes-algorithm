@@ -19,24 +19,22 @@ After we go through all the words in the email, we check which is greater: the p
 
 The way to find out if one thing occured, then another thing occured is to multiply them. For example, what's the probability of getting 2 heads in a row? It's the probability of getting one head in a flip, times the probability of getting another head, 1/2 x 1/2 = 1/4.
 
-Importantly, in the coin flip example, the two flips are independent. Flipping one coin and getting a certain result doesn't affect the likelihood of getting a heads or a tails during the next flip.
+Importantly, in the coin flip example, the two flips are independent. Flipping a coin and getting a certain result doesn't affect the probability of getting a heads or a tails during the next flip.
 
-In Naive Bayes, and in this spam example, we are assuming independence. We are assuming that one word affects the probability of a certain word appearing after it. This assumption is incorrect. But still, we get good results even after assuming so.
+In Naive Bayes, and in this spam example, we are assuming independence. That's what makes it 'naive'. We are assuming that a word appearing does not affect the probability of a certain word appearing after. This assumption is incorrect. But still, Naive Bayes gets good results even after making things imprecise by assuming so.
 
 ##### What if, in a new email, we see a word we haven't seen before?
 
 We would be multiplying by 0/0, which is impossible. To prevent this, we will add 1 to the numerator of every word the algorithm knows, and also 1 to the denominator.
 
-So if when we fed emails to the algorithm, 'nutshell' showed up in 10 of the 100 spam emails, we will save its probability as 11/101 = 10.9%. For a new word that hasn't been seen before, the probability that it has shown up in spam emails will be 1, and the probability that it has shown up in non-spam emails is also 1.
+So when we fed emails to the algorithm, if 'nutshell' showed up in 10 of the 100 spam emails, we will save its probability as 11/101 = 10.9%. For a new word that hasn't been seen before, the probability that it has shown up in spam emails will be 1, and the probability that it has shown up in non-spam emails will also be 1.
 
 This is called Laplace smoothing.
 
 ## How to use
 
-Make a [term-document matrix](http://en.wikipedia.org/wiki/Document-term_matrix), like a NumPy array with rows as each email, and columns as each word in the master dictionary. If a word appears in the email, have the entry be 1, and 0 otherwise. I haven't tested this out if the entry is the number of times a word appears in each email.
+Make a [term-document matrix](http://en.wikipedia.org/wiki/Document-term_matrix), like a NumPy array with rows as each email, and columns as each word in the master dictionary. If a word appears in the email, have the entry be 1, and 0 otherwise. I haven't tested the performance if the entry is the number of times a word appears in each email.
 
-Numbering for the emails should start from 0 (i.e. there should be a 0th email, then a 1st email, etc.).
-
-Then, make another array with 1 column where each row is an email, and 
+Numbering for the categories for `y` should start from 0. That is to say, if the two categories are spam and not spam, they should be labeled 0 and 1, respectively, not 1 and 2. You can use more than 2 categories!
 
 Import `main.py`, and use `fit()` to train the algorithm. Then, load the test dataset, and use `predict()` on that. Use `score()` to find out how good your algorithm did.
